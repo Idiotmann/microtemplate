@@ -16,6 +16,7 @@ import (
 	"log"
 )
 
+//查询服务端，链路追踪
 func main() {
 	//配置中心
 	consulConfig, err := common.GetConsulConfig("127.0.0.1", 8500, "micro/config")
@@ -40,6 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// 数据库类型：mysql，数据库用户名：root，密码：Kk1503060325，数据库名字：micro
 	db, err := gorm.Open("mysql", mysqlConfig.User+":"+mysqlConfig.Password+"@/"+mysqlConfig.Database+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		log.Fatal(err)
@@ -48,7 +50,7 @@ func main() {
 	db.SingularTable(true) //禁用表名复数
 
 	//创建表之后，就注释掉
-	repository.NewProductRepository(db).InitTable() //初始化表
+	//repository.NewProductRepository(db).InitTable()
 
 	productDataService := service2.NewProductDataService(repository.NewProductRepository(db))
 
@@ -57,7 +59,7 @@ func main() {
 		micro.Version("latest"),
 		micro.Address("127.0.0.1:8085"), //服务启动的地址
 		micro.Registry(consulReg),       //注册中心
-		//绑定链路追踪
+		//绑定链路追踪  服务端绑定handler,客户端绑定Client
 		micro.WrapHandler(opentracing2.NewHandlerWrapper(opentracing.GlobalTracer())),
 	)
 	//获取mysql配置,路径中不带前缀
